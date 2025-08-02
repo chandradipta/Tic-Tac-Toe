@@ -1,4 +1,5 @@
-#🎮 Tic Tac Toe – The Classic Game Reimagined for the Web
+🎮 Tic Tac Toe – The Classic Game Reimagined for the Web
+
 Tic Tac Toe is a clean, interactive, and browser-based implementation of the timeless 2-player strategy game. Built using pure HTML, CSS, and JavaScript, this project delivers a fun user experience with modern design elements and smooth gameplay. It’s perfect for beginners looking to understand front-end logic and DOM manipulation, as well as anyone wanting a quick game of Xs and Os.
 
 Whether you're a student, developer, or hobbyist, this project is a great example of how core web technologies can bring classic games to life in a responsive and engaging way.
