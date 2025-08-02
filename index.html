@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tic Tac Toe</title>
+  <style>
+    :root {
+      --bg-color: #1f1f1f;
+      --text-color: white;
+      --cell-bg: #333;
+      --cell-hover: #444;
+      --win-bg: #28a745;
+      --btn-bg: #007bff;
+      --btn-hover: #0056b3;
+    }
+
+    body.light {
+      --bg-color: #99ccff;
+      --text-color: #111;
+      --cell-bg: #fff;
+      --cell-hover: #ddd;
+      --win-bg: yellow;
+      --btn-bg: #1976d2;
+      --btn-hover: #0d47a1;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: start;
+      min-height: 100vh;
+      margin: 0;
+      padding-top: 30px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    #themeToggle {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 30px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 30px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "🌙";
+      height: 24px;
+      width: 24px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: .4s;
+    }
+
+    input:checked + .slider {
+      background-color: #2196f3;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(30px);
+      content: "☀️";
+    }
+
+    #scoreBoard {
+      display: flex;
+      gap: 40px;
+      margin-bottom: 20px;
+      font-size: 1.2em;
+    }
+
+    #controls {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    select, button {
+      padding: 8px 12px;
+      font-size: 1em;
+      border-radius: 6px;
+      border: none;
+      background: var(--btn-bg);
+      color: white;
+      cursor: pointer;
+    }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 8px;
+    }
+
+    .cell {
+      background: var(--cell-bg);
+      border-radius: 10px;
+      font-size: 2.5em;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .cell:hover {
+      background-color: var(--cell-hover);
+      transform: scale(1.05);
+    }
+
+    #status {
+      margin-top: 25px;
+      font-size: 1.3em;
+    }
+
+    #restartBtn {
+      margin-top: 20px;
+      padding: 10px 25px;
+      font-size: 1em;
+      background: var(--btn-bg);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    #restartBtn:hover {
+      background: var(--btn-hover);
+    }
+
+    .winner {
+      background: var(--win-bg) !important;
+      color: white;
+      animation: pulse 1s infinite;
+    }
+
+    body.light .winner {
+      background: yellow !important;
+      color: red !important;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    body.light .cell.x { color: red; }
+    body.light .cell.o { color: black; }
+    body:not(.light) .cell.x { color: yellow; }
+    body:not(.light) .cell.o { color: white; }
+  </style>
+</head>
+<body>
+  <h1>Tic Tac Toe</h1>
+
+  <div id="themeToggle">
+    <label class="toggle-switch">
+      <input type="checkbox" id="toggleTheme" />
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div id="controls">
+    <select id="modeSelect">
+      <option value="human">Multiplayer</option>
+      <option value="ai">Single Player (vs AI)</option>
+    </select>
+    <select id="difficultySelect" style="display: none;">
+      <option value="easy">Easy</option>
+      <option value="medium">Medium</option>
+      <option value="hard">Hard</option>
+    </select>
+    <button id="resetScoresBtn">Reset Scores</button>
+  </div>
+
+  <div id="scoreBoard">
+    <div>Player X: <span id="scoreX">0</span></div>
+    <div>Player O: <span id="scoreO">0</span></div>
+    <div>Draws: <span id="scoreDraw">0</span></div>
+  </div>
+
+  <div id="board"></div>
+  <div id="status">Player X's turn</div>
+  <button id="restartBtn">Restart Game</button>
+
+  <!-- Sounds -->
+  <audio id="moveSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_3b82fb8ec5.mp3?filename=click-21156.mp3"></audio>
+  <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_e42e2b4f69.mp3?filename=success-1-6297.mp3"></audio>
+  <audio id="drawSound" src="https://cdn.pixabay.com/download/audio/2022/02/15/audio_2e30fa8319.mp3?filename=beep-6-9625.mp3"></audio>
+
+  <script>
+    const board = document.getElementById('board');
+    const statusText = document.getElementById('status');
+    const restartBtn = document.getElementById('restartBtn');
+    const scoreX = document.getElementById('scoreX');
+    const scoreO = document.getElementById('scoreO');
+    const scoreDraw = document.getElementById('scoreDraw');
+    const resetScoresBtn = document.getElementById('resetScoresBtn');
+    const modeSelect = document.getElementById('modeSelect');
+    const difficultySelect = document.getElementById('difficultySelect');
+    const toggleTheme = document.getElementById('toggleTheme');
+
+    const moveSound = document.getElementById('moveSound');
+    const winSound = document.getElementById('winSound');
+    const drawSound = document.getElementById('drawSound');
+
+    let currentPlayer = 'X';
+    let cells = [];
+    let gameActive = true;
+    let mode = 'human';
+    let difficulty = 'easy';
+
+    const winCombos = [
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6]
+    ];
+
+    let scores = JSON.parse(localStorage.getItem('ticTacToeScores')) || { X: 0, O: 0, D: 0 };
+
+    function saveScores() {
+      localStorage.setItem('ticTacToeScores', JSON.stringify(scores));
+    }
+
+    function updateScores() {
+      scoreX.textContent = scores.X;
+      scoreO.textContent = scores.O;
+      scoreDraw.textContent = scores.D;
+      saveScores();
+    }
+
+    function playSound(type) {
+      if (type === 'move') moveSound.play();
+      else if (type === 'win') winSound.play();
+      else if (type === 'draw') drawSound.play();
+    }
+
+    function randomMove() {
+      const empty = cells.map((c, i) => c.textContent === '' ? i : null).filter(i => i !== null);
+      return empty.length ? empty[Math.floor(Math.random() * empty.length)] : undefined;
+    }
+
+    function checkMiniWin(player) {
+      return winCombos.some(combo => combo.every(i => cells[i].textContent === player));
+    }
+
+    function minimax(player) {
+      const available = cells.map((c, i) => c.textContent === '' ? i : null).filter(i => i !== null);
+      if (checkMiniWin('X')) return { score: -10 };
+      if (checkMiniWin('O')) return { score: 10 };
+      if (available.length === 0) return { score: 0 };
+
+      const moves = [];
+
+      for (let i of available) {
+        const backup = cells[i].textContent;
+        cells[i].textContent = player;
+        const result = minimax(player === 'O' ? 'X' : 'O');
+        moves.push({ index: i, score: result.score });
+        cells[i].textContent = backup;
+      }
+
+      let bestMove;
+      if (player === 'O') {
+        bestMove = moves.reduce((best, move) => move.score > best.score ? move : best, { score: -Infinity });
+      } else {
+        bestMove = moves.reduce((best, move) => move.score < best.score ? move : best, { score: Infinity });
+      }
+
+      return bestMove;
+    }
+
+    function aiMove() {
+      if (!gameActive) return;
+      let move;
+      if (difficulty === 'easy') {
+        move = randomMove();
+      } else if (difficulty === 'medium') {
+        move = Math.random() < 0.3 ? minimax('O').index : randomMove();
+      } else {
+        move = minimax('O').index;
+      }
+
+      if (move !== undefined) {
+        cells[move].textContent = 'O';
+        cells[move].classList.add('o');
+        playSound('move');
+        if (!checkWinner()) {
+          currentPlayer = 'X';
+          statusText.textContent = `Player ${currentPlayer}'s turn`;
+        }
+      }
+    }
+
+    function checkWinner() {
+      for (const combo of winCombos) {
+        const [a, b, c] = combo;
+        if (
+          cells[a].textContent &&
+          cells[a].textContent === cells[b].textContent &&
+          cells[a].textContent === cells[c].textContent
+        ) {
+          cells[a].classList.add('winner');
+          cells[b].classList.add('winner');
+          cells[c].classList.add('winner');
+          statusText.textContent = `🎉 Player ${cells[a].textContent} wins!`;
+          scores[cells[a].textContent]++;
+          updateScores();
+          playSound('win');
+          gameActive = false;
+          return true;
+        }
+      }
+
+      if ([...cells].every(cell => cell.textContent !== '')) {
+        statusText.textContent = "It's a draw!";
+        scores.D++;
+        updateScores();
+        playSound('draw');
+        gameActive = false;
+        return true;
+      }
+
+      return false;
+    }
+
+    function handleClick(e) {
+      const cell = e.target;
+      if (!gameActive || cell.textContent !== '') return;
+      cell.textContent = currentPlayer;
+      cell.classList.add(currentPlayer.toLowerCase());
+      playSound('move');
+      if (checkWinner()) return;
+
+      if (mode === 'ai') {
+        currentPlayer = 'O';
+        statusText.textContent = `AI thinking...`;
+        setTimeout(aiMove, 500);
+      } else {
+        currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+        statusText.textContent = `Player ${currentPlayer}'s turn`;
+      }
+    }
+
+    function createBoard() {
+      board.innerHTML = '';
+      cells = [];
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.addEventListener('click', handleClick);
+        board.appendChild(cell);
+        cells.push(cell);
+      }
+    }
+
+    restartBtn.addEventListener('click', () => {
+      gameActive = true;
+      currentPlayer = 'X';
+      statusText.textContent = `Player ${currentPlayer}'s turn`;
+      createBoard();
+    });
+
+    resetScoresBtn.addEventListener('click', () => {
+      scores = { X: 0, O: 0, D: 0 };
+      updateScores();
+    });
+
+    toggleTheme.addEventListener('change', () => {
+      document.body.classList.toggle('light', toggleTheme.checked);
+      localStorage.setItem('theme', toggleTheme.checked ? 'light' : 'dark');
+    });
+
+    // On load, restore theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+      document.body.classList.add('light');
+      toggleTheme.checked = true;
+    }
+
+    modeSelect.addEventListener('change', () => {
+      mode = modeSelect.value;
+      difficultySelect.style.display = mode === 'ai' ? 'inline-block' : 'none';
+      restartBtn.click();
+    });
+
+    difficultySelect.addEventListener('change', () => {
+      difficulty = difficultySelect.value;
+    });
+
+    updateScores();
+    createBoard();
+  </script>
+</body>
+</html>
